@@ -1455,9 +1455,11 @@ export default {
         */
     removeRow: function (idx, is_parent) {
       if (is_parent) {
-        // parent only has 1 row. take help from clearParentData. The remove row button
-        // in parent table is added for symmetry
-        this.clearParentData(false);
+        if (this.mode_data.parents.length > 1) {
+          this.mode_data.parents.splice(idx, 1);
+        } else {
+          this.clearParentData(false);
+        }
         return;
       }
 
