@@ -62,13 +62,25 @@
                   <thead>
                     <tr class="border">
                       <td class="px-1">#</td>
-                      <td class="px-1">宽度(mm)</td>
+                      <td class="px-1" width="50%">宽度(mm)</td>
                       <td class="px-1">数量</td>
                       <td class="px-1 border-0">
                         <div v-on:click="selectdRow(index)" class="btn btn-outline-danger btn-sm m-0 py-0 px-1">
                           ✔️
                         </div>
                       </td>
+                    </tr>
+                  </thead>
+                  <thead>
+                    <tr class="border">
+                      <td class="px-1">#</td>
+                      <td class="px-1"> 损耗(mm)</td>
+                      <td class="px-1">
+                        {{
+                        child_rolls.worstWidth
+                        }}
+                      </td>
+                      <td class="px-1 border-0"></td>
                     </tr>
                   </thead>
                   <tbody>
@@ -288,9 +300,6 @@
           </div>
 
           <span v-if="mode_data.result">
-            <!-- <p>Total Solutions: {{ mode_data.result.numSolutions }}</p> -->
-            <!-- <p>Helpful Solutions: {{ mode_data.result.numUniqueSolutions }}</p> -->
-
             <div v-if="mode === '1d'" class="row my-2">
               <div class="col">
                 <h4>切割方案</h4>
@@ -314,7 +323,7 @@
                       <td class="px-1">卷</td>
                       <td class="px-1">使用率</td>
                       <td class="px-1">边丝/重量</td>
-                      <td class="px-1">切割的明细</td>
+                      <td class="px-1">切割明细</td>
                     </tr>
                   </thead>
                   <tbody>
@@ -336,31 +345,52 @@
                     </tr>
                   </tbody>
                 </table>
-
-                <!--
-                            <div class="row">
-                                <h6 class="col-3">Stock</h6>
-                                <h6 class="col-6">Cut Widths</h6>
-                                <h6 class="col-3">Leftover</h6>
-                            </div>
-                            <div class="row" v-for="(bigRoll, index) in mode_data.result.solutions">
-                                <div class="col-3">
-                                    {{ index + 1}}
-                                </div>
-
-                                <div class="col-6">
-                                    <span>
-                                        {{ bigRoll[1].join(",   ") }}
-                                    </span>
-                                </div>
-
-                                <div class="col-3">
-                                    {{bigRoll[0]}}
-                                </div>
-                            </div> -->
               </div>
             </div>
 
+            <div v-if="mode === '1d'" class="row my-2">
+              <div class="col">
+                <h4>切割方案汇总</h4>
+                <div class="row">
+                  <div class="col">
+                    <p class="m-0">
+                      共需要卷的数量 = {{ mode_data.result.solutions.length }}
+                    </p>
+                  </div>
+                </div>
+
+                <table cellpadding="0" cellspacing="0" class="w-100 border-0">
+                  <thead>
+                    <tr class="border">
+                      <td class="px-1">卷</td>
+                      <td class="px-1">使用率</td>
+                      <td class="px-1">边丝/重量</td>
+                      <td class="px-1">切割明细及重量</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border" v-for="(bigRoll, index) in mode_data.result.solutions" v-bind:key="index">
+                      <td class="px-1 text-secondary">
+                        {{ index + 1 }}
+                      </td>
+
+                      <td class="px-1">
+                        {{ getPercentageUtilization(bigRoll[0], bigRoll[1]) }} %
+                      </td>
+                      <td class="px-1">
+                        {{ getRound(bigRoll[0]) }}/{{ bigRoll[2]}}
+                      </td>
+                      <td class="px-1">
+                        <!-- join without space, so paste in excel would not change it to date -->
+                        {{ 
+                            bigRoll[3].join(",  ")
+                        }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <!-- dimentions of rects of solutions -->
             <div v-if="mode === '2d'">
               <div v-for="(sol, index) in mode_data.result.solutions" v-bind:key="index">
@@ -620,7 +650,7 @@ export default {
           }
         }
         this.mode_data.parents.forEach((parent) => {
-          parent_width += parseFloat(parent.width);
+          parent_width += parseFloat(parent.width)*parseFloat(parent.quantity);
         });
         for (let i = 0; i < this.mode_data.childs.length; i++) {
           const child = this.mode_data.childs[i];
@@ -631,7 +661,7 @@ export default {
       }
       // 根据规格切割
       if (this.cutStyle == "ruleCuts") {
-        let url = 'http://150.158.76.64:9999/api/stocks_1d_by_len';
+        let url = 'http://127.0.0.1:9999/api/stocks_1d_by_len';
         let s_weight = 0.0;
         this.mode_data.parents.forEach((parent) => {
           s_weight += parseFloat(parent.weight) * parseFloat(parent.quantity);
@@ -656,6 +686,12 @@ export default {
                   rule.width = rule.width/1000;
                 })
               }
+              // 计算浪费宽度
+              let worstWidth = 0;
+              sol.solutions.solutions.forEach((sud_sol) => {
+                  worstWidth += parseFloat(sud_sol.un_used);
+              });
+              sol.worstWidth =  worstWidth/1000;
             });
             this.mode_data.childs_for_select = response.data.data.solutions;
             console.log(this.mode_data.childs_for_select);
@@ -847,7 +883,7 @@ export default {
       };
     },
     sendReq2: function () {
-      let url = 'http://150.158.76.64:9999/api/stocks_1d_by_weight';
+      let url = 'http://127.0.0.1:9999/api/stocks_1d_by_weight';
 
       this.disableCutButton(true);
       // process the data as server's requirements
@@ -856,6 +892,7 @@ export default {
       axios
         .post(url, dataToSend)
         .then((response) => {
+          console.log("==============================");
           console.log(response);
           this.disableCutButton(false);
           this.displayResult(response);
@@ -926,20 +963,24 @@ export default {
       if (this.mode === "1d") {
         let rolls = [];
         this.mode_data.result.data.solutions.forEach((soluton) => {
-          console.log(soluton);
           let subs = [];
           soluton.subs.forEach((s) => {
             subs.push(parseFloat(s / 1000));
           });
-          rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000)]);
+          let subs_weight = [];
+          soluton.sub_weights.forEach((s) => {
+            subs_weight.push(parseFloat(s / 1000));
+          });
+          rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000),subs_weight]);
         });
-        console.log(rolls);
+
         this.mode_data.result.solutions = rolls;
         let child_index = 0;
         this.mode_data.result.data.sub_weights.forEach((weight) => {
           this.mode_data.childs[child_index].weight = parseFloat(weight / 1000);
           child_index += 1;
         });
+
         this.checkValidity1D();
         this.draw1d();
       } else this.draw2d();
@@ -1065,20 +1106,36 @@ export default {
             2. sort the cuts to each bigRoll (small rolls in nested array to bigRoll) in descending order
         */
     sortBigRolls: function (bigRolls) {
-      // sort 2-D array based on 0-th element of each nested array
-      // https://stackoverflow.com/a/16096900/3578289
+
+      console.log("BigRoll=======");
+      console.log(bigRolls);
+
       bigRolls = bigRolls.sort(function (a, b) {
         return a[0] - b[0];
       });
-
       for (let i = 0; i < bigRolls.length; i++) {
+        // 计算子卷的个数和重量
+        let unique_arr = Array.from(new Set(bigRolls[i][1]));
+        let for_each_unique_arr = Array.from(new Set(bigRolls[i][1]));
+        for_each_unique_arr.forEach((j,index_j)=>{
+          let num = 0;
+          let weight = 0;
+          bigRolls[i][1].forEach((k,index_k)=>{
+            if (j == k){
+              num+=1;
+              weight += bigRolls[i][3][index_k];
+            }
+          })
+           unique_arr[index_j] = j + "*" + num + "/" + weight;
+        })
+        bigRolls[i][3] = unique_arr;
+        // 排序
         let smallRolls = bigRolls[i][1];
         smallRolls = smallRolls.sort(function (a, b) {
           return a - b;
         });
         bigRolls[i][1] = smallRolls;
       }
-
       return bigRolls;
     },
 
@@ -1424,26 +1481,33 @@ export default {
         this.mode_data.childs[index].quantity = ele.quantity;
       }
       this.rule_selectd_index =  idx;
-      console.log("111111111");
       this.mode_data.result = {"data":{"solutions":null,"sub_weights":null}};
-      console.log("22222222");
       this.mode_data.result.data.solutions = this.mode_data.childs_for_select[idx].solutions.solutions;
       this.mode_data.result.data.sub_weights = this.mode_data.childs_for_select[idx].solutions.sub_weights;
-      console.log(this.mode_data.result.data.solutions);
-      console.log(this.mode_data.result.data.sub_weights);
       let rolls = [];
       this.mode_data.result.data.solutions.forEach((soluton) => {
           let subs = [];
           soluton.subs.forEach((s) => {
             subs.push(parseFloat(s / 1000));
           });
-          rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000)]);
+          let subs_weight = [];
+          soluton.sub_weights.forEach((s) => {
+            subs_weight.push(parseFloat(s / 1000));
+          });
+
+          rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000),subs_weight]);
         });
         console.log(rolls);
         this.mode_data.result.solutions = rolls;
         let child_index = 0;
-        this.mode_data.result.data.sub_weights.forEach((weight) => {
-          this.mode_data.childs[child_index].weight = parseFloat(weight / 1000);
+        let all_parent_width = 0;
+        this.mode_data.parents.forEach((parent) => {
+          all_parent_width += parseFloat(parent.width) * parseFloat(parent.quantity);
+        });
+        this.mode_data.result.data.sub_weights.forEach(() => {
+          let sub_widht = parseFloat(this.mode_data.childs[child_index].width) * parseFloat(this.mode_data.childs[child_index].quantity);
+          let all_weight = parseFloat(this.all_weight);
+          this.mode_data.childs[child_index].weight = Math.round(sub_widht/all_parent_width * all_weight * 1000)/1000;
           child_index += 1;
         });
         this.checkValidity1D();
