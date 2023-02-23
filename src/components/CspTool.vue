@@ -1506,6 +1506,11 @@ export default {
         // this.mode_data.parents.forEach((parent) => {
         //   all_parent_width += parseFloat(parent.width) * parseFloat(parent.quantity);
         // });
+        this.mode_data.result.data.sub_weights.forEach(()=>{
+          this.mode_data.childs[child_index].weight = 0;
+          child_index += 1;
+        });
+        child_index = 0;
         this.mode_data.result.data.sub_weights.forEach((w) => {
           if (parseFloat(this.mode_data.childs[child_index].weight)) {
             this.mode_data.childs[child_index].weight = parseFloat(this.mode_data.childs[child_index].weight)+w/1000;
