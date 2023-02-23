@@ -661,7 +661,7 @@ export default {
       }
       // 根据规格切割
       if (this.cutStyle == "ruleCuts") {
-        let url = 'http://127.0.0.1:9999/api/stocks_1d_by_len';
+        let url = 'http://150.158.76.64:9999/api/stocks_1d_by_len';
         let s_weight = 0.0;
         this.mode_data.parents.forEach((parent) => {
           s_weight += parseFloat(parent.weight) * parseFloat(parent.quantity);
@@ -885,7 +885,7 @@ export default {
       };
     },
     sendReq2: function () {
-      let url = 'http://127.0.0.1:9999/api/stocks_1d_by_weight';
+      let url = 'http://150.158.76.64:9999/api/stocks_1d_by_weight';
 
       this.disableCutButton(true);
       // process the data as server's requirements
