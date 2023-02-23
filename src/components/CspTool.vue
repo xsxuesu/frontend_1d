@@ -852,7 +852,8 @@ export default {
 
       let newParents = [];
       this.mode_data.parents.forEach((parent) => {
-        newParents.push({ "quantity": parseInt(parent.quantity), "width": parseInt(parseFloat(parent.width) * 1000) - parseInt(parseFloat(this.side) * 1000), "weight": parseInt(parseFloat(parent.weight) * 1000) });
+        let worst_weight = Math.round((parseFloat(this.side)/parseFloat(parent.width))*(parseFloat(parent.weight)*1000));
+        newParents.push({ "quantity": parseInt(parent.quantity), "width": parseInt(parseFloat(parent.width) * 1000) - parseInt(parseFloat(this.side) * 1000), "weight": parseInt(parseFloat(parent.weight) * 1000-worst_weight) });
       });
 
       return {
@@ -871,7 +872,8 @@ export default {
 
       let newParents = [];
       this.mode_data.parents.forEach((parent) => {
-        newParents.push({ "quantity": parseInt(parent.quantity), "width": parseInt(parseFloat(parent.width) * 1000), "weight": parseInt(parseFloat(parent.weight) * 1000) });
+        let worst_weight = Math.round((parseFloat(this.side)/parseFloat(parent.width))*(parseFloat(parent.weight)*1000));
+        newParents.push({ "quantity": parseInt(parent.quantity), "width": parseInt(parseFloat(parent.width) * 1000), "weight": parseInt(parseFloat(parent.weight) * 1000-worst_weight) });
       });
 
       return {
@@ -1500,14 +1502,20 @@ export default {
         console.log(rolls);
         this.mode_data.result.solutions = rolls;
         let child_index = 0;
-        let all_parent_width = 0;
-        this.mode_data.parents.forEach((parent) => {
-          all_parent_width += parseFloat(parent.width) * parseFloat(parent.quantity);
-        });
-        this.mode_data.result.data.sub_weights.forEach(() => {
-          let sub_widht = parseFloat(this.mode_data.childs[child_index].width) * parseFloat(this.mode_data.childs[child_index].quantity);
-          let all_weight = parseFloat(this.all_weight);
-          this.mode_data.childs[child_index].weight = Math.round(sub_widht/all_parent_width * all_weight * 1000)/1000;
+        // let all_parent_width = 0;
+        // this.mode_data.parents.forEach((parent) => {
+        //   all_parent_width += parseFloat(parent.width) * parseFloat(parent.quantity);
+        // });
+        this.mode_data.result.data.sub_weights.forEach((w) => {
+          if (parseFloat(this.mode_data.childs[child_index].weight)) {
+            this.mode_data.childs[child_index].weight = parseFloat(this.mode_data.childs[child_index].weight)+w/1000;
+          }else{
+            this.mode_data.childs[child_index].weight = w/1000;
+          }
+          
+          // let sub_widht = parseFloat(this.mode_data.childs[child_index].width) * parseFloat(this.mode_data.childs[child_index].quantity);
+          // let all_weight = parseFloat(this.all_weight);
+          // this.mode_data.childs[child_index].weight = Math.round(sub_widht/all_parent_width * all_weight * 1000)/1000;
           child_index += 1;
         });
         this.checkValidity1D();
