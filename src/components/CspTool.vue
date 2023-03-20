@@ -967,11 +967,11 @@ export default {
         this.mode_data.result.data.solutions.forEach((soluton) => {
           let subs = [];
           soluton.subs.forEach((s) => {
-            subs.push(parseFloat(s) / 1000);
+            subs.push(Math.round(parseFloat(s)) / 1000);
           });
           let subs_weight = [];
           soluton.sub_weights.forEach((s) => {
-            subs_weight.push(parseFloat(s) / 1000);
+            subs_weight.push(Math.round(parseFloat(s)) / 1000);
           });
           rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000),subs_weight]);
         });
