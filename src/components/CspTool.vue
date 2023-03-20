@@ -382,7 +382,7 @@
                       </td>
                       <td class="px-1">
                         <!-- join without space, so paste in excel would not change it to date -->
-                        {{ 
+                        {{
                             bigRoll[3].join(",  ")
                         }}
                       </td>
@@ -691,7 +691,7 @@ export default {
               sol.solutions.solutions.forEach((sud_sol) => {
                   worstWidth += parseFloat(sud_sol.un_used);
               });
-              sol.worstWidth =  worstWidth/1000;
+              sol.worstWidth =  (worstWidth/1000) + this.side;
             });
             this.mode_data.childs_for_select = response.data.data.solutions;
             console.log(this.mode_data.childs_for_select);
@@ -967,11 +967,11 @@ export default {
         this.mode_data.result.data.solutions.forEach((soluton) => {
           let subs = [];
           soluton.subs.forEach((s) => {
-            subs.push(parseFloat(s / 1000));
+            subs.push(parseFloat(s) / 1000);
           });
           let subs_weight = [];
           soluton.sub_weights.forEach((s) => {
-            subs_weight.push(parseFloat(s / 1000));
+            subs_weight.push(parseFloat(s) / 1000);
           });
           rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000),subs_weight]);
         });
@@ -1080,7 +1080,7 @@ export default {
 
       //   /*
       //         Check 3: is there extra non intended width that user didn't input?
-  
+
       //         by now, all the widths in outputQuanitites must have been deleted & it must be empty
       //         */
       //   const outputWidths = Object.keys(outputQuantities);
@@ -1490,11 +1490,11 @@ export default {
       this.mode_data.result.data.solutions.forEach((soluton) => {
           let subs = [];
           soluton.subs.forEach((s) => {
-            subs.push(parseFloat(s / 1000));
+            subs.push(Math.round(parseFloat(s)) / 1000);
           });
           let subs_weight = [];
           soluton.sub_weights.forEach((s) => {
-            subs_weight.push(parseFloat(s / 1000));
+            subs_weight.push(Math.round(parseFloat(s)) / 1000);
           });
 
           rolls.push([parseFloat(soluton.un_used / 1000), subs, parseFloat(soluton.un_used_weight / 1000),subs_weight]);
@@ -1517,7 +1517,7 @@ export default {
           }else{
             this.mode_data.childs[child_index].weight = w/1000;
           }
-          
+
           // let sub_widht = parseFloat(this.mode_data.childs[child_index].width) * parseFloat(this.mode_data.childs[child_index].quantity);
           // let all_weight = parseFloat(this.all_weight);
           // this.mode_data.childs[child_index].weight = Math.round(sub_widht/all_parent_width * all_weight * 1000)/1000;
