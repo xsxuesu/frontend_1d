@@ -1128,7 +1128,7 @@ export default {
               weight += bigRolls[i][3][index_k];
             }
           })
-           unique_arr[index_j] = j + "*" + num + "/" + Math.round(parseFloat(weight),3);
+           unique_arr[index_j] = j + "*" + num + "/" + Math.round(parseFloat(weight)*1000)/1000;
         })
         bigRolls[i][3] = unique_arr;
         // 排序
